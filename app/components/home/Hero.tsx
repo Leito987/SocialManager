@@ -1,9 +1,16 @@
 import { useI18n } from "~/contexts/I18nContext";
 import { Button } from "~/components/ui/Button";
 import { Link } from "@remix-run/react";
+import { useDemo } from "~/contexts/DemoContext";
 
 export function Hero() {
   const { t } = useI18n();
+  const { toggleDemoMode } = useDemo();
+  
+  // Function to enable demo mode and navigate (handled by Link component)
+  const handleDemoClick = () => {
+    toggleDemoMode();
+  };
   
   return (
     <div className="relative bg-white dark:bg-gray-950 overflow-hidden">
@@ -38,7 +45,7 @@ export function Hero() {
                 </div>
                 <div className="mt-3 sm:mt-0 sm:ml-3">
                   <Button variant="outline" size="lg" asChild>
-                    <Link to="/demo">
+                    <Link to="/dashboard" onClick={handleDemoClick}>
                       {t("cta.tryDemo")}
                     </Link>
                   </Button>

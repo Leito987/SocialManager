@@ -1,9 +1,11 @@
 import type { MetaFunction } from "@remix-run/node";
-import { Link } from "@remix-run/react";
+import { Link, useNavigate } from "@remix-run/react";
 import { Header } from "~/components/layout/Header";
 import { Footer } from "~/components/layout/Footer";
 import { Button } from "~/components/ui/Button";
 import { useI18n } from "~/contexts/I18nContext";
+import { useAuth } from "~/contexts/AuthContext";
+import { useState } from "react";
 
 export const meta: MetaFunction = () => {
   return [
@@ -14,6 +16,30 @@ export const meta: MetaFunction = () => {
 
 export default function Login() {
   const { t } = useI18n();
+  const { login } = useAuth();
+  const navigate = useNavigate();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setIsLoading(true);
+    
+    try {
+      const success = await login(email, password);
+      if (!success) {
+        setError("Email ou mot de passe incorrect");
+      }
+    } catch (err) {
+      setError("Une erreur est survenue. Veuillez réessayer.");
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
   
   return (
     <div className="flex flex-col min-h-screen">
@@ -34,7 +60,13 @@ export default function Login() {
 
           <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
             <div className="bg-white dark:bg-gray-800 py-8 px-4 shadow sm:rounded-lg sm:px-10">
-              <form className="space-y-6" action="#" method="POST">
+              {error && (
+                <div className="mb-4 p-2 bg-red-100 border border-red-400 text-red-700 rounded">
+                  {error}
+                </div>
+              )}
+              
+              <form className="space-y-6" onSubmit={handleSubmit}>
                 <div>
                   <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                     Adresse email
@@ -46,6 +78,8 @@ export default function Login() {
                       type="email"
                       autoComplete="email"
                       required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
                       className="appearance-none block w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm dark:bg-gray-700 dark:text-white"
                     />
                   </div>
@@ -62,6 +96,8 @@ export default function Login() {
                       type="password"
                       autoComplete="current-password"
                       required
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
                       className="appearance-none block w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm dark:bg-gray-700 dark:text-white"
                     />
                   </div>
@@ -88,8 +124,13 @@ export default function Login() {
                 </div>
 
                 <div>
-                  <Button variant="primary" className="w-full" type="submit">
-                    Se connecter
+                  <Button 
+                    variant="primary" 
+                    className="w-full" 
+                    type="submit"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? "Connexion en cours..." : "Se connecter"}
                   </Button>
                 </div>
               </form>

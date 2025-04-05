@@ -15,7 +15,7 @@ export const meta: MetaFunction = () => {
 
 function DemoContent() {
   const { t } = useI18n();
-  const { toggleDemoMode, isDemoMode, setSelectedPlan } = useDemo();
+  const { startDemoAndRedirect, setSelectedPlan } = useDemo();
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
   
   const platforms = [
@@ -47,7 +47,7 @@ function DemoContent() {
       return;
     }
     
-    toggleDemoMode();
+    startDemoAndRedirect();
   };
   
   return (

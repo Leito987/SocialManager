@@ -1,72 +1,55 @@
+import type { LinksFunction, LoaderFunctionArgs } from "@remix-run/node";
 import {
   Links,
+  LiveReload,
   Meta,
   Outlet,
   Scripts,
   ScrollRestoration,
   useLoaderData,
 } from "@remix-run/react";
-import type { LinksFunction, LoaderFunctionArgs } from "@remix-run/node";
-import { json } from "@remix-run/node";
+import { I18nProvider } from "./contexts/I18nContext";
+import { DemoProvider } from "./contexts/DemoContext";
+import { AuthProvider } from "./contexts/AuthContext";
+import { getDictionary } from "./utils/i18n.server";
 
 import "./tailwind.css";
-import { useEffect } from "react";
-import { getDictionary } from "./utils/i18n.server";
-import { I18nProvider } from "./contexts/I18nContext";
 
 export const links: LinksFunction = () => [
-  { rel: "preconnect", href: "https://fonts.googleapis.com" },
-  {
-    rel: "preconnect",
-    href: "https://fonts.gstatic.com",
-    crossOrigin: "anonymous",
-  },
-  {
-    rel: "stylesheet",
-    href: "https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,100..900;1,100..900&display=swap",
-  },
+  // Remove the cssBundleHref import that's causing the error
 ];
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  // Default to French as specified in requirements
+  // For now, we'll just use French as the default language
   const locale = "fr";
   const dictionary = await getDictionary(locale);
   
-  return json({
-    locale,
-    dictionary,
-  });
+  return { locale, dictionary };
 }
 
-export function Layout({ children }: { children: React.ReactNode }) {
+export default function App() {
+  const { locale, dictionary } = useLoaderData<typeof loader>();
+  
   return (
-    <html lang="fr">
+    <html lang={locale} className="h-full">
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <Meta />
         <Links />
       </head>
-      <body className="min-h-screen bg-white text-gray-900 dark:bg-gray-950 dark:text-gray-100">
-        {children}
+      <body className="h-full bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100">
+        <I18nProvider locale={locale} dictionary={dictionary}>
+          <DemoProvider>
+            <AuthProvider>
+              <Outlet />
+            </AuthProvider>
+          </DemoProvider>
+        </I18nProvider>
         <ScrollRestoration />
         <Scripts />
+        <LiveReload />
       </body>
     </html>
-  );
-}
-
-export default function App() {
-  const { locale, dictionary } = useLoaderData<typeof loader>();
-
-  // Set the HTML lang attribute based on the current locale
-  useEffect(() => {
-    document.documentElement.lang = locale;
-  }, [locale]);
-
-  return (
-    <I18nProvider locale={locale} dictionary={dictionary}>
-      <Outlet />
-    </I18nProvider>
   );
 }
